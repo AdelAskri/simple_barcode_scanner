@@ -7,7 +7,7 @@ import 'package:simple_barcode_scanner/constant.dart';
 import 'package:simple_barcode_scanner/enum.dart';
 
 /// Barcode scanner for web using iframe
-class BarcodeScanner extends StatelessWidget {
+class BarcodeScanner extends StatefulWidget {
   final String lineColor;
   final String cancelButtonText;
   final bool isShowFlashIcon;
@@ -29,10 +29,15 @@ class BarcodeScanner extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    String createdViewId = DateTime.now().microsecondsSinceEpoch.toString();
-    String? barcodeNumber;
+  State<BarcodeScanner> createState() => _BarcodeScannerState();
+}
 
+class _BarcodeScannerState extends State<BarcodeScanner> {
+  String createdViewId = DateTime.now().microsecondsSinceEpoch.toString();
+  String? barcodeNumber;
+
+  @override
+  void initState() {
     final html.IFrameElement iframe = html.IFrameElement()
       ..src = PackageConstant.barcodeFileWebPath
       ..style.border = 'none'
@@ -45,7 +50,7 @@ class BarcodeScanner extends StatelessWidget {
           /// and close the screen otherwise keep scanning
           if (barcodeNumber == null) {
             barcodeNumber = event.data;
-            onScanned(barcodeNumber!);
+            widget.onScanned(barcodeNumber!);
           }
         });
       });
@@ -54,10 +59,15 @@ class BarcodeScanner extends StatelessWidget {
         .registerViewFactory(createdViewId, (int viewId) => iframe);
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height / (16 / 9);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(appBarTitle ?? kScanPageTitle),
-        centerTitle: centerTitle,
+        title: Text(widget.appBarTitle ?? kScanPageTitle),
+        centerTitle: widget.centerTitle,
       ),
       body: Column(
         children: [
@@ -66,7 +76,7 @@ class BarcodeScanner extends StatelessWidget {
               viewType: createdViewId,
             ),
           ),
-          if (child != null) child!,
+          if (widget.child != null) widget.child!,
         ],
       ),
     );
