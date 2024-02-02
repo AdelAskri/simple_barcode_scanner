@@ -53,24 +53,26 @@ class BarcodeScanner extends StatelessWidget {
     ui.platformViewRegistry
         .registerViewFactory(createdViewId, (int viewId) => iframe);
     final width = MediaQuery.of(context).size.width;
-    final height = width / (16 / 9);
+    final height = MediaQuery.of(context).size.height / (16 / 9);
     return Scaffold(
       appBar: AppBar(
         title: Text(appBarTitle ?? kScanPageTitle),
         centerTitle: centerTitle,
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: height,
-              width: width,
-              child: HtmlElementView(
-                viewType: createdViewId,
+        child: Expanded(
+          child: Column(
+            children: [
+              SizedBox(
+                height: height,
+                width: width,
+                child: HtmlElementView(
+                  viewType: createdViewId,
+                ),
               ),
-            ),
-            if (child != null) child!,
-          ],
+              if (child != null) child!,
+            ],
+          ),
         ),
       ),
     );
