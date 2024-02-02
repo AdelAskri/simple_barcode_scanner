@@ -1,4 +1,5 @@
 // ignore: avoid_web_libraries_in_flutter
+import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui;
 
@@ -35,7 +36,7 @@ class BarcodeScanner extends StatefulWidget {
 class _BarcodeScannerState extends State<BarcodeScanner> {
   String createdViewId = DateTime.now().microsecondsSinceEpoch.toString();
   String? barcodeNumber;
-
+  late StreamSubscription stream;
   @override
   void initState() {
     final html.IFrameElement iframe = html.IFrameElement()
@@ -54,16 +55,33 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
           }
         });
       });
-    // ignore: undefined_prefixed_name
+    stream = iframe.onLoad.listen((event) async {
+      /// Barcode listener on success barcode scanned
+      html.window.onMessage.listen((event) {
+        /// If barcode is null then assign scanned barcode
+        /// and close the screen otherwise keep scanning
+        if (barcodeNumber == null) {
+          barcodeNumber = event.data;
+          widget.onScanned(barcodeNumber!);
+        }
+      });
+    });
+
     ui.platformViewRegistry
         .registerViewFactory(createdViewId, (int viewId) => iframe);
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height / (16 / 9);
+    final focusNode = FocusNode();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
+
+    // Check if the keyboard is open (bottom inset greater than zero)
+    bool isKeyboardOpen = viewInsets.bottom > 0;
+    if (isKeyboardOpen) stream.cancel();
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.appBarTitle ?? kScanPageTitle),
