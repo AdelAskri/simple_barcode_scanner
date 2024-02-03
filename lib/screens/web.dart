@@ -8,7 +8,7 @@ import 'package:simple_barcode_scanner/constant.dart';
 import 'package:simple_barcode_scanner/enum.dart';
 
 /// Barcode scanner for web using iframe
-class BarcodeScanner extends StatefulWidget {
+class BarcodeScanner extends StatelessWidget {
   final String lineColor;
   final String cancelButtonText;
   final bool isShowFlashIcon;
@@ -17,7 +17,7 @@ class BarcodeScanner extends StatefulWidget {
   final String? appBarTitle;
   final bool? centerTitle;
   final Widget? child;
-  const BarcodeScanner({
+  BarcodeScanner({
     super.key,
     required this.lineColor,
     required this.cancelButtonText,
@@ -29,16 +29,14 @@ class BarcodeScanner extends StatefulWidget {
     this.child,
   });
 
-  @override
-  State<BarcodeScanner> createState() => _BarcodeScannerState();
-}
-
-class _BarcodeScannerState extends State<BarcodeScanner> {
   String createdViewId = DateTime.now().microsecondsSinceEpoch.toString();
+
   String? barcodeNumber;
+
   late StreamSubscription stream;
+
   @override
-  void initState() {
+  Widget build(BuildContext context) {
     final html.IFrameElement iframe = html.IFrameElement()
       ..src = PackageConstant.barcodeFileWebPath
       ..style.border = 'none'
@@ -51,7 +49,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
           /// and close the screen otherwise keep scanning
           if (barcodeNumber == null) {
             barcodeNumber = event.data;
-            widget.onScanned(barcodeNumber!);
+            onScanned(barcodeNumber!);
           }
         });
       });
@@ -62,30 +60,23 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
         /// and close the screen otherwise keep scanning
         if (barcodeNumber == null) {
           barcodeNumber = event.data;
-          widget.onScanned(barcodeNumber!);
+          onScanned(barcodeNumber!);
         }
       });
     });
 
     ui.platformViewRegistry
         .registerViewFactory(createdViewId, (int viewId) => iframe);
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height / (16 / 9);
-    final focusNode = FocusNode();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
 
     // Check if the keyboard is open (bottom inset greater than zero)
     bool isKeyboardOpen = viewInsets.bottom > 0;
     if (isKeyboardOpen) stream.cancel();
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.appBarTitle ?? kScanPageTitle),
-        centerTitle: widget.centerTitle,
+        title: Text(appBarTitle ?? kScanPageTitle),
+        centerTitle: centerTitle,
       ),
       body: Column(
         children: [
@@ -94,7 +85,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
               viewType: createdViewId,
             ),
           ),
-          if (widget.child != null) widget.child!,
+          if (child != null) child!,
         ],
       ),
     );
